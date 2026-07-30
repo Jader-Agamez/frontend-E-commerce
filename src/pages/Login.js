@@ -29,12 +29,12 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
-            <input className="form-control" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required autoFocus />
+            <label htmlFor="email">Email</label>
+            <input id="email" className="form-control" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required autoFocus />
           </div>
           <div className="form-group">
-            <label>Contraseña</label>
-            <input className="form-control" type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
+            <label htmlFor="password">Contraseña</label>
+            <input id="password" className="form-control" type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
           </div>
           <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading} style={{ marginTop: '.5rem' }}>
             {loading ? 'Ingresando...' : 'Iniciar sesión'}

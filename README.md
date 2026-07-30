@@ -7,7 +7,7 @@ Interfaz de usuario construida con **React 18**, diseño **mobile-first** y CSS 
 ## 📁 Estructura
 
 ```
-frontend/
+frontend-E-commerce/
 ├── public/
 │   └── index.html              # HTML base con fuente Inter de Google Fonts
 ├── src/
@@ -45,7 +45,7 @@ frontend/
 ## ⚙️ Instalación
 
 ```bash
-cd frontend
+cd frontend-E-commerce
 npm install
 ```
 
@@ -63,6 +63,15 @@ REACT_APP_API_URL=http://localhost:5000/api
 |---------|-------------|
 | `npm start` | Desarrollo en http://localhost:3000 |
 | `npm run build` | Build de producción en `/build` |
+| `npm test` | Ejecutar pruebas de UI del flujo de login |
+
+### Pruebas
+
+```bash
+npm test
+```
+
+Ejecuta una prueba mínima para validar el ingreso a la app desde el login y el render del home tras la autenticación.
 
 ---
 
