@@ -15,8 +15,11 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       const { data } = await cartAPI.getCart();
       setItems(data);
-    } catch { setItems([]); }
-    finally { setLoading(false); }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { fetchCart(); }, [fetchCart]);

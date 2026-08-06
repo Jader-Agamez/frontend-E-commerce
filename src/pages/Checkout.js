@@ -19,7 +19,11 @@ export default function Checkout() {
     notes: '',
   });
 
-  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    let { name, value } = e.target;
+    if (name === 'cardNumber') value = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
+    setForm((f) => ({ ...f, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +41,9 @@ export default function Checkout() {
       navigate(`/orders/${data.order.id}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al procesar el pago');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (items.length === 0) { navigate('/cart'); return null; }
@@ -71,8 +77,7 @@ export default function Checkout() {
                 <div className="form-group">
                   <label>Número de tarjeta</label>
                   <input className="form-control" name="cardNumber" value={form.cardNumber}
-                    onChange={handleChange} placeholder="1234 5678 9012 3456" maxLength={19} required
-                    onInput={(e) => { e.target.value = e.target.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim(); }} />
+                    onChange={handleChange} placeholder="1234 5678 9012 3456" maxLength={19} required />
                   <small style={{ color: 'var(--gray)', fontSize: '.78rem' }}>
                     Usa 4000000000000002 para simular rechazo
                   </small>
