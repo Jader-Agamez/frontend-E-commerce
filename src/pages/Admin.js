@@ -15,8 +15,12 @@ export default function Admin() {
   const [editProduct, setEditProduct] = useState(null);
   const [productForm, setProductForm] = useState({ name: '', description: '', price: '', stock: '', sku: '', categoryId: '', image: '' });
 
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [editCategory, setEditCategory] = useState(null);
+  const [categoryForm, setCategoryForm] = useState({ name: '', description: '', image: '' });
+
   const loadData = async () => {
-    if (tab === 'products') {
+    if (tab === 'products' || tab === 'categories') {
       const [p, c] = await Promise.all([productsAPI.getAll({ limit: 100 }), categoriesAPI.getAll()]);
       setProducts(p.data.products);
       setCategories(c.data);
@@ -69,6 +73,34 @@ export default function Admin() {
     loadData();
   };
 
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editCategory) await categoriesAPI.update(editCategory.id, categoryForm);
+      else await categoriesAPI.create(categoryForm);
+      toast.success(editCategory ? 'Categoría actualizada' : 'Categoría creada');
+      setShowCategoryForm(false);
+      setEditCategory(null);
+      setCategoryForm({ name: '', description: '', image: '' });
+      loadData();
+    } catch (err) { toast.error(err.response?.data?.message || 'Error'); }
+  };
+
+  const handleEditCategory = (c) => {
+    setEditCategory(c);
+    setCategoryForm({ name: c.name, description: c.description || '', image: c.image || '' });
+    setShowCategoryForm(true);
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('¿Eliminar categoría?')) return;
+    await categoriesAPI.delete(id);
+    toast.success('Categoría eliminada');
+    loadData();
+  };
+
+  const cf = (field) => (e) => setCategoryForm((f) => ({ ...f, [field]: e.target.value }));
+
   const pf = (field) => (e) => setProductForm((f) => ({ ...f, [field]: e.target.value }));
 
   return (
@@ -76,10 +108,10 @@ export default function Admin() {
       <div className="container">
         <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>⚙️ Panel de administración</h1>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-          {['products', 'orders', 'users'].map((t) => (
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          {['products', 'categories', 'orders', 'users'].map((t) => (
             <button key={t} className={`btn ${tab === t ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t)}>
-              {t === 'products' ? '🛍️ Productos' : t === 'orders' ? '📦 Pedidos' : '👥 Usuarios'}
+              {t === 'products' ? '🛍️ Productos' : t === 'categories' ? '📂 Categorías' : t === 'orders' ? '📦 Pedidos' : '👥 Usuarios'}
             </button>
           ))}
         </div>
@@ -136,6 +168,56 @@ export default function Admin() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* CATEGORIES TAB */}
+        {tab === 'categories' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <button className="btn btn-primary" onClick={() => { setShowCategoryForm(!showCategoryForm); setEditCategory(null); setCategoryForm({ name: '', description: '', image: '' }); }}>
+                + Nueva categoría
+              </button>
+            </div>
+
+            {showCategoryForm && (
+              <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>{editCategory ? 'Editar categoría' : 'Nueva categoría'}</h3>
+                <form onSubmit={handleCategorySubmit}>
+                  <div className="grid grid-2">
+                    <div className="form-group"><label>Nombre</label><input className="form-control" value={categoryForm.name} onChange={cf('name')} required /></div>
+                    <div className="form-group"><label>Imagen URL</label><input className="form-control" value={categoryForm.image} onChange={cf('image')} /></div>
+                    <div className="form-group" style={{ gridColumn: '1/-1' }}><label>Descripción</label><textarea className="form-control" rows={2} value={categoryForm.description} onChange={cf('description')} /></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button type="submit" className="btn btn-primary">{editCategory ? 'Actualizar' : 'Crear'}</button>
+                    <button type="button" className="btn btn-outline" onClick={() => setShowCategoryForm(false)}>Cancelar</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            <div className="card table-wrapper">
+              <table>
+                <thead><tr><th>Nombre</th><th>Descripción</th><th>Productos</th><th>Acciones</th></tr></thead>
+                <tbody>
+                  {categories.map((c) => {
+                    const productCount = products.filter((p) => p.categoryId === c.id).length;
+                    return (
+                      <tr key={c.id}>
+                        <td><strong>{c.name}</strong></td>
+                        <td>{c.description || '-'}</td>
+                        <td><span className="badge badge-info">{productCount}</span></td>
+                        <td style={{ display: 'flex', gap: '.5rem' }}>
+                          <button className="btn btn-outline btn-sm" onClick={() => handleEditCategory(c)}>✏️</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCategory(c.id)}>🗑️</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
