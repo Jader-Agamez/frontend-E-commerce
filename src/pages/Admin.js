@@ -67,6 +67,12 @@ export default function Admin() {
     loadData();
   };
 
+  const handleRoleChange = async (user, role) => {
+    await usersAPI.update(user.id, { ...user, role });
+    toast.success('Rol actualizado');
+    loadData();
+  };
+
   const handleToggleUser = async (user) => {
     await usersAPI.update(user.id, { ...user, isActive: !user.isActive });
     toast.success('Usuario actualizado');
@@ -253,13 +259,18 @@ export default function Admin() {
         {tab === 'users' && (
           <div className="card table-wrapper">
             <table>
-              <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead>
+              <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>{u.name}</td>
                     <td>{u.email}</td>
-                    <td><span className={`badge ${u.role === 'admin' ? 'badge-info' : 'badge-gray'}`}>{u.role}</span></td>
+                    <td>
+                      <select className="form-control" style={{ padding: '.3rem .6rem', fontSize: '.85rem' }} value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
+                        <option value="customer">customer</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    </td>
                     <td><span className={`badge ${u.isActive ? 'badge-success' : 'badge-danger'}`}>{u.isActive ? 'Activo' : 'Inactivo'}</span></td>
                     <td>
                       <button className={`btn btn-sm ${u.isActive ? 'btn-danger' : 'btn-outline'}`} onClick={() => handleToggleUser(u)}>
