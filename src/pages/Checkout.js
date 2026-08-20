@@ -1,42 +1,64 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { ordersAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
-export default function Checkout() {
+const stripePromise = loadStripe('pk_test_51U6bajRQuYIT7Sw0VLToErItNg9gsr2LVJYZUsHkdqS8Zlx4sOBqYHrV3EQcqdCEobQ6BLZNtcEd0qacxiKXPfKA00VaT4Vhex');
+
+const CARD_STYLE = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      '::placeholder': { color: '#aab7c4' },
+    },
+    invalid: { color: '#e53e3e' },
+  },
+};
+
+function CheckoutForm() {
   const navigate = useNavigate();
   const { items, total } = useCart();
   const { user } = useAuth();
+  const stripe = useStripe();
+  const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     shippingAddress: user?.address || '',
-    cardNumber: '',
-    cardHolder: user?.name || '',
-    cardExpiry: '',
-    cardCvv: '',
     notes: '',
   });
 
-  const handleChange = (e) => {
-    let { name, value } = e.target;
-    if (name === 'cardNumber') value = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
-    setForm((f) => ({ ...f, [name]: value }));
-  };
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.shippingAddress) return toast.error('Dirección requerida');
-    if (form.cardNumber.replace(/\s/g, '').length < 16) return toast.error('Número de tarjeta inválido');
+    if (!stripe || !elements) return;
+
     setLoading(true);
     try {
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: elements.getElement(CardElement),
+        billing_details: { name: user?.name },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
+
       const { data } = await ordersAPI.create({
         shippingAddress: form.shippingAddress,
-        cardNumber: form.cardNumber.replace(/\s/g, ''),
-        cardHolder: form.cardHolder,
+        paymentMethodId: paymentMethod.id,
         notes: form.notes,
       });
+
       toast.success('¡Pedido confirmado! 🎉');
       navigate(`/orders/${data.order.id}`);
     } catch (err) {
@@ -54,8 +76,6 @@ export default function Checkout() {
         <h1 className="section-title">💳 Checkout</h1>
         <form onSubmit={handleSubmit}>
           <div className="checkout-layout">
-
-            {/* Formularios */}
             <div>
               <div className="card" style={{ padding: '1.2rem', marginBottom: '1rem' }}>
                 <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>Dirección de envío</h3>
@@ -74,35 +94,18 @@ export default function Checkout() {
 
               <div className="card" style={{ padding: '1.2rem' }}>
                 <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>Información de pago</h3>
-                <div className="form-group">
-                  <label>Número de tarjeta</label>
-                  <input className="form-control" name="cardNumber" value={form.cardNumber}
-                    onChange={handleChange} placeholder="1234 5678 9012 3456" maxLength={19} required />
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Tarjeta de crédito / débito</label>
+                  <div style={{ padding: '0.75rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#fff' }}>
+                    <CardElement options={CARD_STYLE} />
+                  </div>
                   <small style={{ color: 'var(--gray)', fontSize: '.78rem' }}>
-                    Usa 4000000000000002 para simular rechazo
+                    Prueba: <strong>4242 4242 4242 4242</strong> — cualquier fecha futura y CVV
                   </small>
-                </div>
-                <div className="form-group">
-                  <label>Titular</label>
-                  <input className="form-control" name="cardHolder" value={form.cardHolder}
-                    onChange={handleChange} required />
-                </div>
-                <div className="grid grid-2">
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label>Vencimiento</label>
-                    <input className="form-control" name="cardExpiry" value={form.cardExpiry}
-                      onChange={handleChange} placeholder="MM/AA" maxLength={5} required />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label>CVV</label>
-                    <input className="form-control" name="cardCvv" value={form.cardCvv}
-                      onChange={handleChange} placeholder="123" maxLength={4} required />
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Resumen */}
             <div className="card checkout-summary">
               <h3 style={{ marginBottom: '1rem', fontWeight: 800 }}>Resumen</h3>
               {items.map((item) => (
@@ -116,14 +119,21 @@ export default function Checkout() {
                 <span>Total</span>
                 <span style={{ color: 'var(--primary)' }}>${total.toFixed(2)}</span>
               </div>
-              <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
+              <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading || !stripe}>
                 {loading ? '⏳ Procesando...' : '✓ Confirmar pedido'}
               </button>
             </div>
-
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm />
+    </Elements>
   );
 }
