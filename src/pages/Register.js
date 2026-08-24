@@ -8,15 +8,16 @@ export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', address: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password.length < 6) return toast.error('Contraseña mínimo 6 caracteres');
+    if (form.password.length < 6) return toast.error('La contraseña debe tener mínimo 6 caracteres');
     setLoading(true);
     try {
       await register(form);
-      toast.success('¡Cuenta creada exitosamente!');
-      navigate('/');
+      toast.success('Cuenta creada. Inicia sesión.');
+      navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al registrarse');
     } finally { setLoading(false); }
@@ -41,7 +42,28 @@ export default function Register() {
           </div>
           <div className="form-group">
             <label>Contraseña</label>
-            <input className="form-control" type="password" value={form.password} onChange={set('password')} required minLength={6} />
+            <div style={{ position: 'relative' }}>
+              <input
+                className="form-control"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={set('password')}
+                required
+                minLength={12}
+                style={{ paddingRight: '4rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+                  fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)',
+                }}
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
           </div>
           <div className="form-group">
             <label>Teléfono (opcional)</label>

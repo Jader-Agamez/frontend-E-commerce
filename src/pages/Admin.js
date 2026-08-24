@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { productsAPI, categoriesAPI, ordersAPI, usersAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
 const STATUS_LABELS = { pending: 'Pendiente', paid: 'Pagado', processing: 'Procesando', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado' };
 
 export default function Admin() {
+  const { isSuperAdmin, superAdminEmails } = useAuth();
   const [tab, setTab] = useState('products');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -266,10 +268,16 @@ export default function Admin() {
                     <td>{u.name}</td>
                     <td>{u.email}</td>
                     <td>
-                      <select className="form-control" style={{ padding: '.3rem .6rem', fontSize: '.85rem' }} value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
-                        <option value="customer">customer</option>
-                        <option value="admin">admin</option>
-                      </select>
+                      {isSuperAdmin && !superAdminEmails.includes(u.email?.toLowerCase()) ? (
+                        <select className="form-control" style={{ padding: '.3rem .6rem', fontSize: '.85rem' }} value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
+                          <option value="customer">customer</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      ) : superAdminEmails.includes(u.email?.toLowerCase()) ? (
+                        <span className="badge" style={{ background: '#7c3aed', color: '#fff' }}>Super Admin</span>
+                      ) : (
+                        <span className={`badge ${u.role === 'admin' ? 'badge-info' : 'badge-success'}`}>{u.role}</span>
+                      )}
                     </td>
                     <td><span className={`badge ${u.isActive ? 'badge-success' : 'badge-danger'}`}>{u.isActive ? 'Activo' : 'Inactivo'}</span></td>
                     <td>

@@ -14,6 +14,8 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import OrderDetail from './pages/OrderDetail';
 import Admin from './pages/Admin';
+import Security from './pages/Security';
+import Setup2FA from './pages/Setup2FA';
 import './index.css';
 
 export default function App() {
@@ -31,6 +33,8 @@ export default function App() {
             <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
+            <Route path="/setup-2fa" element={<ProtectedRoute><Setup2FA /></ProtectedRoute>} />
             <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
           </Routes>

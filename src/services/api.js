@@ -27,6 +27,12 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   getProfile: () => api.get('/auth/profile'),
   updateProfile: (data) => api.put('/auth/profile', data),
+  getConfig: () => api.get('/auth/config'),
+  confirmEmail: (token) => api.get(`/auth/confirm/${token}`),
+  setup2FA: () => api.post('/auth/2fa/setup'),
+  verify2FA: (data) => api.post('/auth/2fa/verify', data),
+  disable2FA: (data) => api.post('/auth/2fa/disable', data),
+  skip2FA: () => api.post('/auth/2fa/skip'),
 };
 
 export const productsAPI = {
