@@ -64,6 +64,7 @@ export const ordersAPI = {
   getOne: (id) => api.get(`/orders/${id}`),
   getAll: (params) => api.get('/orders', { params }),
   updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
+  getStats: (params) => api.get('/orders/stats', { params }),
 };
 
 export const usersAPI = {
