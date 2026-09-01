@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
-const stripePromise = loadStripe('pk_test_51U6bajRQuYIT7Sw0VLToErItNg9gsr2LVJYZUsHkdqS8Zlx4sOBqYHrV3EQcqdCEobQ6BLZNtcEd0qacxiKXPfKA00VaT4Vhex');
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_KEY || 'pk_test_placeholder');
 
 const CARD_STYLE = {
   style: {

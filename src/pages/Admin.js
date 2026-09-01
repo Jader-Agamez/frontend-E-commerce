@@ -3,6 +3,7 @@ import { productsAPI, categoriesAPI, ordersAPI, usersAPI } from '../services/api
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import DashboardStats from '../components/admin/DashboardStats';
+import CJImporter from '../components/admin/CJImporter';
 
 const STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
 const STATUS_LABELS = { pending: 'Pendiente', paid: 'Pagado', processing: 'Procesando', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado' };
@@ -118,7 +119,7 @@ export default function Admin() {
         <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>⚙️ Panel de administración</h1>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-          {[{ key: 'stats', label: '📊 Estadísticas' }, { key: 'products', label: '🛍️ Productos' }, { key: 'categories', label: '📂 Categorías' }, { key: 'orders', label: '📦 Pedidos' }, { key: 'users', label: '👥 Usuarios' }].map((t) => (
+          {[{ key: 'stats', label: '📊 Estadísticas' }, { key: 'cj', label: '🔗 CJ Dropshipping' }, { key: 'products', label: '🛍️ Productos' }, { key: 'categories', label: '📂 Categorías' }, { key: 'orders', label: '📦 Pedidos' }, { key: 'users', label: '👥 Usuarios' }].map((t) => (
             <button key={t.key} className={`btn ${tab === t.key ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab(t.key)}>
               {t.label}
             </button>
@@ -127,6 +128,9 @@ export default function Admin() {
 
         {/* STATS TAB */}
         {tab === 'stats' && <DashboardStats />}
+
+        {/* CJ TAB */}
+        {tab === 'cj' && <CJImporter />}
 
         {/* PRODUCTS TAB */}
         {tab === 'products' && (
