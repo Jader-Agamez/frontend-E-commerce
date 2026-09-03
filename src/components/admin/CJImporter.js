@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import api from '../../services/api';
+import { useState, useEffect } from 'react';
+import api, { categoriesAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 export default function CJImporter() {
@@ -8,6 +8,12 @@ export default function CJImporter() {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  useEffect(() => {
+    categoriesAPI.getAll().then(({ data }) => setCategories(data)).catch(() => {});
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -15,6 +21,7 @@ export default function CJImporter() {
     setLoading(true);
     setProduct(null);
     setImported(false);
+    setSelectedCategory('');
     try {
       const { data } = await api.get(`/cj/product/${pid.trim()}`);
       setProduct(data);
@@ -24,9 +31,13 @@ export default function CJImporter() {
   };
 
   const handleImport = async () => {
+    if (!selectedCategory) {
+      toast.error('Selecciona una categoría');
+      return;
+    }
     setImporting(true);
     try {
-      await api.post('/cj/import', { pid: product.pid });
+      await api.post('/cj/import', { pid: product.pid, categoryId: parseInt(selectedCategory) });
       toast.success('✅ Producto importado a tu tienda');
       setImported(true);
     } catch (err) {
@@ -72,7 +83,7 @@ export default function CJImporter() {
             <img
               src={image || 'https://via.placeholder.com/200x200?text=Sin+imagen'}
               alt={product.productNameEn}
-              style={{ width: '100%', height: '100%', minHeight: 200, objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', minHeight: 200, objectFit: 'contain', background: '#f8fafc' }}
             />
             {/* Info */}
             <div style={{ padding: '1.4rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -85,6 +96,13 @@ export default function CJImporter() {
               <div style={{ fontSize: '0.78rem', color: '#64748b', fontFamily: 'monospace' }}>
                 PID: {product.pid}
               </div>
+
+              {/* Descripción de CJ */}
+              {product.description && (
+                <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, marginTop: '0.3rem', maxHeight: 80, overflow: 'auto' }}>
+                  {product.description}
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.4rem' }}>
                 <div>
@@ -103,6 +121,24 @@ export default function CJImporter() {
                 )}
               </div>
 
+              {/* Selector de categoría */}
+              <div style={{ marginTop: '0.8rem' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '0.4rem' }}>
+                  Categoría de tu tienda *
+                </label>
+                <select
+                  className="form-control"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="">Seleccionar categoría...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div style={{ marginTop: 'auto', paddingTop: '0.8rem' }}>
                 {imported ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontWeight: 700 }}>
@@ -112,7 +148,7 @@ export default function CJImporter() {
                   <button
                     className="btn btn-primary"
                     onClick={handleImport}
-                    disabled={importing}
+                    disabled={importing || !selectedCategory}
                     style={{ width: '100%' }}
                   >
                     {importing ? 'Importando...' : '+ Importar a mi tienda'}
